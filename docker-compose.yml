@@ -1,0 +1,17 @@
+version: '3.8'
+
+services:
+  web:
+    # We take the Dockerfile from the app directory
+    build: ./app
+    # We start the test server
+    command: python manage.py runserver 0.0.0.0:8000
+    # where the data from the app directory will be placed
+    volumes:
+      - ./app/:/usr/src/app/
+    # Opening port 8000 inside and outside
+    ports:
+      - 8000:8000
+    # The file containing the variables for the container
+    env_file:
+      - ./.env.dev
