@@ -3,7 +3,9 @@ version: '3.8'
 services:
   web:
     # We take the Dockerfile from the app directory
-    build: ./app
+    build:
+       context: ./app
+       dockerfile: Dockerfile.prod
     # Start the gunicorn server
     command: gunicorn django_project.wsgi:application --bind 0.0.0.0:8000
     # Opening port 8000 inside and outside
