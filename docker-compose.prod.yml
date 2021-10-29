@@ -11,6 +11,10 @@ services:
     # Opening port 8000 outward
     expose:
             - 8000
+    # Connect static and media files
+    volumes:
+      - static_volume:/home/app/web/static
+      - media_volume:/home/app/web/media
     env_file:
       - ./.env.prod
     # We are waiting for the launch of the db container
@@ -26,10 +30,17 @@ services:
       - ./.env.prod.db
   nginx:
     build: ./nginx
+    # Connect static and media files
+    volumes:
+      - static_volume:/home/app/web/static
+      - media_volume:/home/app/web/media
     ports:
       - 1337:80
     depends_on:
       - web
 
+
 volumes:
   postgres_volume:
+  static_volume:
+  media_volume:
