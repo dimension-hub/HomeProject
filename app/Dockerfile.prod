@@ -1,0 +1,63 @@
+###########
+# BUILDER #
+###########
+
+FROM python:3.9.7-alpine as builder
+
+WORKDIR /usr/src/app
+
+ENV PYTHONDONTWRITEBYTECODE 1
+ENV PYTHONUNBUFFERED 1
+
+# setting dependencies
+RUN apk update \
+    && apk add postgresql-dev gcc python3-dev musl-dev
+RUN pip install --upgrade pip
+
+# checking the code through the linker
+RUN pip install flake8
+COPY . .
+RUN flake8 --ignore=E501,F401 /usr/src/app/django_project
+
+# dependency installation
+COPY ./requirements.txt .
+RUN pip wheel --no-cache-dir --no-deps --wheel-dir /usr/src/app/wheels -r requirements.txt
+
+
+#########
+# FINAL #
+#########
+
+FROM python:3.9.7-alpine
+
+# create a directory for the user
+RUN mkdir -p /home/app
+
+# create an individual user
+RUN addgroup -S app && adduser -S app -G app
+
+# creating a directory for the application
+ENV HOME=/home/app
+ENV APP_HOME=/home/app/web
+RUN mkdir $APP_HOME
+WORKDIR $APP_HOME
+
+# installing dependencies and copying from the builder
+RUN apk update && apk add libpq
+COPY --from=builder /usr/src/app/wheels /wheels
+COPY --from=builder /usr/src/app/requirements.txt .
+RUN pip install --no-cache /wheels/*
+
+# copy entrypoint-prod.sh
+COPY ./entrypoint.prod.sh $APP_HOME
+
+# copying the Django project
+COPY . $APP_HOME
+
+# change the rights for the app user
+RUN chown -R app:app $APP_HOME
+
+# change the working user
+USER app
+
+ENTRYPOINT ["/home/app/web/entrypoint.prod.sh"]
