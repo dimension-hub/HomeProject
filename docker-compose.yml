@@ -15,3 +15,17 @@ services:
     # The file containing the variables for the container
     env_file:
       - ./.env.dev
+  db:
+    # The image and version of the base that we will use
+    image: postgres:12.0-alpine
+    # External volume and the place where it will be mounted inside the container
+    volumes:
+      - postgres_volume:/var/lib/postgresql/data/
+    environment:
+      # Credentials that can be overridden
+      - POSTGRES_USER=django_user
+      - POSTGRES_PASSWORD=django_password
+      - POSTGRES_DB=django_db
+
+volumes:
+  postgres_volume:
